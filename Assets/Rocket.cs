@@ -6,8 +6,10 @@ using UnityEngine;
 public class Rocket : MonoBehaviour
 {
 
-    Rigidbody rigidbody;
-    AudioSource audioSource;
+    private new Rigidbody rigidbody;
+    private AudioSource audioSource;
+    [SerializeField] float rcsThrust = 100f;
+    [SerializeField] float mainThrust = 1000f;
 
     // Start is called before the first frame update
     void Start()
@@ -23,12 +25,25 @@ public class Rocket : MonoBehaviour
         Rotate();
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        switch (collision.gameObject.tag)
+        {
+            case "Friendly":
+                print("OK");
+                break;
+            default:
+                print("Boom");
+                break;
+        }
+    }
 
     private void Thrust()
     {
         if (Input.GetKey(KeyCode.Space)) // can thrust whilst rotating
         {
-            rigidbody.AddRelativeForce(Vector3.up);
+            float thrustThisFrame = mainThrust * Time.deltaTime;
+            rigidbody.AddRelativeForce(Vector3.up * thrustThisFrame);
             if (!audioSource.isPlaying) // make sure only plays once
             {
                 audioSource.Play();
@@ -42,14 +57,15 @@ public class Rocket : MonoBehaviour
 
     private void Rotate()
     {
-        rigidbody.freezeRotation = true; // take manual control of rotation
+        rigidbody.freezeRotation = true; // take manual control of rotation        
+        float rotationThisFrame = rcsThrust * Time.deltaTime;
         if (Input.GetKey(KeyCode.A))
-        {
-            transform.Rotate(Vector3.forward);
+        {            
+            transform.Rotate(Vector3.forward * rotationThisFrame);
         }
         else if (Input.GetKey(KeyCode.D))
         {
-            transform.Rotate(-Vector3.forward);
+            transform.Rotate(-Vector3.forward * rotationThisFrame);
         }
         rigidbody.freezeRotation = false; // resume Unity rotation control
     }
