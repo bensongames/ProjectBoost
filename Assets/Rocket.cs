@@ -6,16 +6,18 @@ public class Rocket : MonoBehaviour
 
     private new Rigidbody rigidbody;
     private AudioSource audioSource;
-    [SerializeField] int maxLevel = 1;
-    [SerializeField] int currentLevel = 0;
+    [SerializeField] float levelLoadDelay = 2f;
+    private int maxLevel = 0;
+    private int currentLevel = 0;
     [SerializeField] float rcsThrust = 100f;
     [SerializeField] float mainThrust = 1000f;
     [SerializeField] AudioClip thrustSound;
-    [SerializeField] AudioClip winSound;
-    [SerializeField] AudioClip looseSound;
+    [SerializeField] AudioClip levelUpSound;
+    [SerializeField] AudioClip gameOverSound;
     [SerializeField] ParticleSystem thrustParticles;
-    [SerializeField] ParticleSystem winParticles;
-    [SerializeField] ParticleSystem looseParticles;
+    [SerializeField] ParticleSystem levelUpParticles;
+    [SerializeField] ParticleSystem gameOverParticles;
+    bool collisionsDisabled = false;
 
     private enum State
     {
@@ -27,33 +29,36 @@ public class Rocket : MonoBehaviour
     private State state = State.OK;
 
     // Start is called before the first frame update
-    void Start()
+     private void Start()
     {
         rigidbody = GetComponent<Rigidbody>();
         audioSource = GetComponent<AudioSource>();
+        currentLevel = SceneManager.GetActiveScene().buildIndex;
+        maxLevel = SceneManager.sceneCountInBuildSettings-1;
     }
 
     // Update is called once per frame
-    void Update()
+     private void Update()
     {
         if (state != State.OK) return;
         RespondToThrustInput();
         RespondToRotateInput();
+        if (Debug.isDebugBuild) RespondToDebugKeys();
     }
-
+    // OnCollisionEnter is called when one object has begun touching another 
     private void OnCollisionEnter(Collision collision)
     {
-        if (state != State.OK) return;
+        if (state != State.OK || collisionsDisabled) return;
         switch (collision.gameObject.tag)
         {
             case "Friendly":
                 // Do nothing
                 break;
             case "Finish":
-                ChangeLevel(State.LevelUp, winSound);
+                ChangeLevel(State.LevelUp, levelUpSound);
                 break;
             default:
-                ChangeLevel(State.GameOver, looseSound);
+                ChangeLevel(State.GameOver, gameOverSound);
                 break;
         }
     }
@@ -66,16 +71,18 @@ public class Rocket : MonoBehaviour
         if (state == State.GameOver)
         {
             currentLevel = 0;
-            looseParticles.Play();
-        } 
-            
-        else if(currentLevel < maxLevel)
+            gameOverParticles.Play();
+        }
+        else
         {
-            currentLevel += 1;
-            winParticles.Play();
+            if (currentLevel < maxLevel)
+                currentLevel += 1;
+            else
+                currentLevel = 0;
+            levelUpParticles.Play();
         }
             
-        Invoke("LoadLevel", 1f); //parameterise time
+        Invoke("LoadLevel", levelLoadDelay); 
     }
 
     private void LoadLevel()
@@ -101,11 +108,11 @@ public class Rocket : MonoBehaviour
     {
         float thrustThisFrame = mainThrust * Time.deltaTime;
         rigidbody.AddRelativeForce(Vector3.up * thrustThisFrame);
+        thrustParticles.Play();
         if (!audioSource.isPlaying) // make sure only plays once
         {
             audioSource.PlayOneShot(thrustSound);
         }
-        thrustParticles.Play();
     }
 
     private void RespondToRotateInput()
@@ -122,5 +129,18 @@ public class Rocket : MonoBehaviour
         }
         rigidbody.freezeRotation = false; // resume Unity rotation control
     }
+
+    private void RespondToDebugKeys()
+    {
+        if (Input.GetKeyDown(KeyCode.L))
+        { 
+            ChangeLevel(State.LevelUp, levelUpSound); 
+        }
+        else if (Input.GetKeyDown(KeyCode.C))
+        {
+            collisionsDisabled = !collisionsDisabled;
+        }
+    }
+        
 
 }

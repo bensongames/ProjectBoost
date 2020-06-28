@@ -1771,6 +1771,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Rocket Ship
       objectReference: {fileID: 0}
+    - target: {fileID: 1790259203795979498, guid: e8154a6bff203f349b90c513a880bef2,
+        type: 3}
+      propertyPath: currentLevel
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6400242676959941136, guid: e8154a6bff203f349b90c513a880bef2,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1826,11 +1831,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8984784304640762310, guid: e8154a6bff203f349b90c513a880bef2,
+    - target: {fileID: 7297322049299303410, guid: e8154a6bff203f349b90c513a880bef2,
         type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 0156ba9fb5305294abf2cd5a596890e6, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297322049299303410, guid: e8154a6bff203f349b90c513a880bef2,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297322049299303410, guid: e8154a6bff203f349b90c513a880bef2,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e8154a6bff203f349b90c513a880bef2, type: 3}
 --- !u!1001 &6132042423116453341
