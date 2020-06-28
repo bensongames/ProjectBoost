@@ -6,17 +6,25 @@ public class Rocket : MonoBehaviour
 
     private new Rigidbody rigidbody;
     private AudioSource audioSource;
+    [SerializeField] int maxLevel = 1;
+    [SerializeField] int currentLevel = 0;
     [SerializeField] float rcsThrust = 100f;
     [SerializeField] float mainThrust = 1000f;
+    [SerializeField] AudioClip thrustSound;
+    [SerializeField] AudioClip winSound;
+    [SerializeField] AudioClip looseSound;
+    [SerializeField] ParticleSystem thrustParticles;
+    [SerializeField] ParticleSystem winParticles;
+    [SerializeField] ParticleSystem looseParticles;
 
     private enum State
     {
-        Alive,
-        Dying,
-        Progressing
+        OK,
+        LevelUp,
+        GameOver
     }
 
-    private State state = State.Alive;
+    private State state = State.OK;
 
     // Start is called before the first frame update
     void Start()
@@ -28,61 +36,79 @@ public class Rocket : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (state != State.Alive) return;
-        Thrust();
-        Rotate();
+        if (state != State.OK) return;
+        RespondToThrustInput();
+        RespondToRotateInput();
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (state != State.Alive) return;
+        if (state != State.OK) return;
         switch (collision.gameObject.tag)
         {
             case "Friendly":
                 // Do nothing
                 break;
             case "Finish":
-                state = State.Progressing;
-                Invoke("LoadNextLevel", 1f); //parameterise time
+                ChangeLevel(State.LevelUp, winSound);
                 break;
             default:
-                state = State.Dying;
-                audioSource.Stop();
-                Invoke("LoadFirstLevel", 1f); //parameterise time
+                ChangeLevel(State.GameOver, looseSound);
                 break;
         }
     }
 
-    private void LoadNextLevel()
+    private void ChangeLevel(State newState, AudioClip soundToPlay)
     {
-        SceneManager.LoadScene(1);
-        state = State.Alive;
+        state = newState;
+        audioSource.Stop();
+        audioSource.PlayOneShot(soundToPlay);
+        if (state == State.GameOver)
+        {
+            currentLevel = 0;
+            looseParticles.Play();
+        } 
+            
+        else if(currentLevel < maxLevel)
+        {
+            currentLevel += 1;
+            winParticles.Play();
+        }
+            
+        Invoke("LoadLevel", 1f); //parameterise time
     }
 
-    private void LoadFirstLevel()
+    private void LoadLevel()
     {
-        SceneManager.LoadScene(0);
-        state = State.Alive;
-    }      
+        SceneManager.LoadScene(currentLevel);
+        state = State.OK;
+    }
 
-    private void Thrust()
+    private void RespondToThrustInput()
     {
         if (Input.GetKey(KeyCode.Space)) // can thrust whilst rotating
         {
-            float thrustThisFrame = mainThrust * Time.deltaTime;
-            rigidbody.AddRelativeForce(Vector3.up * thrustThisFrame);
-            if (!audioSource.isPlaying) // make sure only plays once
-            {
-                audioSource.Play();
-            }
+            ApplyThrust();
         }
         else
         {
             audioSource.Stop();
+            thrustParticles.Stop();
         }
     }
 
-    private void Rotate()
+    private void ApplyThrust()
+    {
+        float thrustThisFrame = mainThrust * Time.deltaTime;
+        rigidbody.AddRelativeForce(Vector3.up * thrustThisFrame);
+        if (!audioSource.isPlaying) // make sure only plays once
+        {
+            audioSource.PlayOneShot(thrustSound);
+        }
+        thrustParticles.Play();
+    }
+
+    private void RespondToRotateInput()
     {
         rigidbody.freezeRotation = true; // take manual control of rotation        
         float rotationThisFrame = rcsThrust * Time.deltaTime;
