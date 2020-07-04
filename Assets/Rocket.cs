@@ -99,10 +99,10 @@ public class Rocket : MonoBehaviour
         }
         else
         {
-            audioSource.Stop();
-            thrustParticles.Stop();
+            StopThrust();
         }
     }
+
 
     private void ApplyThrust()
     {
@@ -114,10 +114,15 @@ public class Rocket : MonoBehaviour
             audioSource.PlayOneShot(thrustSound);
         }
     }
+    private void StopThrust()
+    {
+        audioSource.Stop();
+        thrustParticles.Stop();
+    }
 
     private void RespondToRotateInput()
     {
-        rigidbody.freezeRotation = true; // take manual control of rotation        
+        rigidbody.angularVelocity = Vector3.zero;        
         float rotationThisFrame = rcsThrust * Time.deltaTime;
         if (Input.GetKey(KeyCode.A))
         {            
@@ -127,7 +132,6 @@ public class Rocket : MonoBehaviour
         {
             transform.Rotate(-Vector3.forward * rotationThisFrame);
         }
-        rigidbody.freezeRotation = false; // resume Unity rotation control
     }
 
     private void RespondToDebugKeys()
